@@ -8,7 +8,7 @@ local Spawner = {}
 Spawner.__index = Spawner
 
 export type Spawner = typeof(setmetatable(
-	{} :: { _food: Food.Food, _janitor: Janitor.Janitor, size: Vector2, position: Vector3, rate: number },
+	{} :: { _janitor: Janitor.Janitor, food: Food.Food, size: Vector2, position: Vector3, rate: number },
 	Spawner
 ))
 
@@ -17,8 +17,8 @@ local random = Random.new()
 function Spawner.new(food: Food.Food, size: Vector2, position: Vector3, rate: number): Spawner
 	local self = {}
 
-	self._food = food
 	self._janitor = Janitor.new()
+	self.food = food
 	self.size = size
 	self.position = position
 	self.rate = rate
@@ -29,7 +29,7 @@ end
 function Spawner.start(self: Spawner)
 	local spawnTask = task.spawn(function()
 		while true do
-			local model = self._janitor:Add(self._food.model:Clone())
+			local model = self._janitor:Add(self.food:create())
 
 			local at = Vector3.new(
 				random:NextNumber(self.position.X - self.size.X / 2, self.position.X + self.size.X / 2),
