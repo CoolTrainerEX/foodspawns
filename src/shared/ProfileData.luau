@@ -91,14 +91,12 @@ function ProfileData.applyStats(self: ProfileData)
 	end
 
 	if self._player.Character then
-		local humanoid = self._player.Character:FindFirstChild("Humanoid")
+		local humanoid = self._player.Character:WaitForChild("Humanoid")
 
 		if humanoid:IsA("Humanoid") then
 			humanoid.WalkSpeed = stats["SPEED"]
 		end
 	end
-
-	return stats
 end
 
 function ProfileData.addCurrency(self: ProfileData, currency: Currencies.Currency, value: number)

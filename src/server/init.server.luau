@@ -90,7 +90,7 @@ Players.PlayerRemoving:Connect(function(player: Player)
 	end
 end)
 
-local food = FoodEntity.new(ServerStorage:FindFirstChild("Food"), { ["FOOD"] = 5 })
+local food = FoodEntity.new(ServerStorage:WaitForChild("Food"), { ["FOOD"] = 5 })
 local spawner = EntitySpawner.new({ food }, Vector2.new(100, 100), Vector3.new(0, 5, 0), 1)
 
 food.Touched:Connect(function(player: Player, values: { [Currencies.Currency]: number })
