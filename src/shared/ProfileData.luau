@@ -15,8 +15,8 @@ export type Data = {
 export type ProfileData = typeof(setmetatable(
 	{} :: {
 		_player: Player,
-		replica: typeof(Replica.New()),
 		_data: Data,
+		replica: typeof(Replica.New()),
 	},
 	ProfileData
 ))
@@ -24,12 +24,12 @@ export type ProfileData = typeof(setmetatable(
 type Stat = "SPEED"
 type Upgrade = "BOOSTER"
 
-ProfileData._baseStats = table.freeze({ ["SPEED"] = 1 } :: { [Stat]: number })
+ProfileData._baseStats = table.freeze({ ["SPEED"] = 40 } :: { [Stat]: number })
 
 ProfileData.upgradesList = table.freeze({
 	["BOOSTER"] = {
-		{ stats = { ["SPEED"] = { operation = "ADD", value = 5 } }, cost = { ["MONEY"] = 1 } },
-		{ stats = { ["SPEED"] = { operation = "MUL", value = 5 } }, cost = { ["FOOD"] = 1, ["MONEY"] = 1 } },
+		{ stats = { ["SPEED"] = { operation = "ADD", value = 0.25 } }, cost = { ["MONEY"] = 1 } },
+		{ stats = { ["SPEED"] = { operation = "MUL", value = 1.5 } }, cost = { ["FOOD"] = 1, ["MONEY"] = 1 } },
 	},
 } :: {
 	[Upgrade]: {
@@ -44,14 +44,20 @@ function ProfileData.new(player: Player, data: Data): ProfileData
 	local self = {}
 
 	self._player = player
+	self._data = data
 
 	self.replica = Replica.New({
 		Token = Replica.Token("ProfileData"),
 		Data = { data = data, stats = table.clone(ProfileData._baseStats) },
 	})
-	self._data = data
 
-	return setmetatable(self, ProfileData)
+	self = setmetatable(self, ProfileData)
+
+	self._player.CharacterAdded:Connect(function()
+		self:applyStats()
+	end)
+
+	return self
 end
 
 function ProfileData.applyStats(self: ProfileData)
@@ -82,6 +88,14 @@ function ProfileData.applyStats(self: ProfileData)
 
 	for stat, value in stats do
 		self.replica:Set({ "stats", stat }, value)
+	end
+
+	if self._player.Character then
+		local humanoid = self._player.Character:FindFirstChild("Humanoid")
+
+		if humanoid:IsA("Humanoid") then
+			humanoid.WalkSpeed = stats["SPEED"]
+		end
 	end
 
 	return stats
