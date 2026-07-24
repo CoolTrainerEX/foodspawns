@@ -4,16 +4,34 @@ local App = require(script.App)
 local React = require(ReplicatedStorage.Packages.React)
 local ReactRoblox = require(ReplicatedStorage.Packages.ReactRoblox)
 local Replica = require(ReplicatedStorage.Packages.Replica)
-local Food = require(ReplicatedStorage.Shared.states.Food)
+local Food = require(ReplicatedStorage.Shared.states.currencies.Food)
+local Money = require(ReplicatedStorage.Shared.states.currencies.Money)
+local Speed = require(ReplicatedStorage.Shared.states.stats.Speed)
+local Booster = require(ReplicatedStorage.Shared.states.upgrades.Booster)
 
 ReactRoblox.createRoot(Instance.new("Folder"))
 	:render(ReactRoblox.createPortal(React.createElement(App), Players.LocalPlayer.PlayerGui))
 
 Replica.OnNew("ProfileData", function(replica)
-	Food:setState(replica.Data.Food)
+	Food:setState(replica.Data.data.currencies["FOOD"])
+	Money:setState(replica.Data.data.currencies["MONEY"])
+	Booster:setState(replica.Data.data.upgrades["BOOSTER"])
+	Speed:setState(replica.Data.stats["SPEED"])
 
-	replica:OnSet({ "Food" }, function(value)
+	replica:OnSet({ "data", "currencies", "FOOD" }, function(value)
 		Food:setState(value)
+	end)
+
+	replica:OnSet({ "data", "currencies", "MONEY" }, function(value)
+		Money:setState(value)
+	end)
+
+	replica:OnSet({ "data", "upgrades", "BOOSTER" }, function(value)
+		Booster:setState(value)
+	end)
+
+	replica:OnSet({ "stats", "SPEED" }, function(value)
+		Speed:setState(value)
 	end)
 end)
 

@@ -4,17 +4,23 @@ local ServerStorage = game:GetService("ServerStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local Promise = require(ReplicatedStorage.Packages.Promise)
 local Replica = require(ReplicatedStorage.Packages.Replica)
-local Food = require(ReplicatedStorage.Shared.Food)
-local Spawner = require(ReplicatedStorage.Shared.Spawner)
+local Currencies = require(ReplicatedStorage.Shared.Currencies)
+local ProfileData = require(ReplicatedStorage.Shared.ProfileData)
+local EntitySpawner = require(ReplicatedStorage.Shared.entities.EntitySpawner)
+local FoodEntity = require(ReplicatedStorage.Shared.entities.FoodEntity)
+local Upgrade = require(ReplicatedStorage.Shared.packets.Upgrade)
 local ProfileStore = require(script.Parent.ServerPackages.ProfileStore)
 
-local PlayerStore = ProfileStore.New("PlayerStore", { Food = 0 })
+local PlayerStore = ProfileStore.New(
+	"PlayerStore",
+	{ currencies = { ["FOOD"] = 10, ["MONEY"] = 10 }, upgrades = {} } :: ProfileData.Data
+)
 
 local PlayerData: {
 	[Player]: {
-		Profile: typeof(PlayerStore:StartSessionAsync()),
-		Replica: typeof(Replica.New()),
-		Janitor: typeof(Janitor.new()),
+		profile: typeof(PlayerStore:StartSessionAsync()),
+		data: ProfileData.ProfileData,
+		janitor: typeof(Janitor.new()),
 	},
 } =
 	{}
@@ -42,9 +48,9 @@ local function PlayerAdded(player)
 				local janitor = Janitor.new()
 
 				PlayerData[player] = {
-					Profile = janitor:Add(profile, "EndSession"),
-					Replica = janitor:Add(Replica.New({ Token = Replica.Token("ProfileData"), Data = profile.Data })),
-					Janitor = janitor,
+					profile = janitor:Add(profile, "EndSession"),
+					data = janitor:Add(ProfileData.new(player, profile.Data)),
+					janitor = janitor,
 				}
 
 				print(`Profile loaded for {player.DisplayName}!`)
@@ -71,7 +77,7 @@ Replica.NewReadyPlayer:Connect(function(player: Player)
 
 	if playerPromise then
 		playerPromise:andThen(function(playerData)
-			playerData.Replica:Subscribe(player)
+			playerData.data.replica:Subscribe(player)
 		end)
 	end
 end)
@@ -80,17 +86,25 @@ Players.PlayerRemoving:Connect(function(player: Player)
 	local playerData = PlayerData[player]
 
 	if playerData then
-		playerData.Janitor:Cleanup()
+		playerData.janitor:Cleanup()
 	end
 end)
 
-local food = Food.new(ServerStorage:FindFirstChild("Food"), "Part", 5)
-local spawner = Spawner.new(food, Vector2.new(100, 100), Vector3.new(0, 5, 0), 1)
+local food = FoodEntity.new(ServerStorage:FindFirstChild("Food"), { ["FOOD"] = 5 })
+local spawner = EntitySpawner.new({ food }, Vector2.new(100, 100), Vector3.new(0, 5, 0), 1)
 
-food.Touched:Connect(function(player: Player, value: number)
-	local playerData = PlayerData[player]
+food.Touched:Connect(function(player: Player, values: { [Currencies.Currency]: number })
+	local data = PlayerData[player].data
 
-	playerData.Replica:Set({ "Food" }, playerData.Profile.Data.Food + value)
+	for currency, value in values do
+		data:addCurrency(currency, value)
+	end
+end)
+
+Upgrade.upgrade.listen(function(data: string, player: Player?)
+	if player then
+		PlayerData[player].data:upgrade(data)
+	end
 end)
 
 spawner:start()
