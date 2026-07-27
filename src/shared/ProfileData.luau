@@ -1,7 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local Replica = require(ReplicatedStorage.Packages.Replica)
 local Currencies = require(ReplicatedStorage.Shared.Currencies)
+local FoodEntity = require(ReplicatedStorage.Shared.entities.FoodEntity)
 
 --[=[
 	@class ProfileData
@@ -51,23 +53,33 @@ export type Data = {
 
 	[Replica] used to sync data to the client.
 ]=]
+
+--[=[
+	@prop janitor Janitor
+	@within ProfileData
+	@external Janitor https://howmanysmall.github.io/Janitor/api/Janitor/
+	@readonly
+
+	[Janitor] used by the instance.
+]=]
 export type ProfileData = typeof(setmetatable(
 	{} :: {
 		_player: Player,
 		_data: Data,
 		replica: typeof(Replica.New()),
+		janitor: Janitor.Janitor,
 	},
 	ProfileData
 ))
 
 --[=[
-	@type Stat "SPEED"
+	@type Stat "SPEED" | "PICKUP_RADIUS"
 	@within ProfileData
 	@private
 
 	Player stat IDs.
 ]=]
-type Stat = "SPEED"
+type Stat = "SPEED" | "PICKUP_RADIUS"
 
 --[=[
 	@type Upgrade "BOOSTER"
@@ -86,7 +98,7 @@ type Upgrade = "BOOSTER"
 
 	Player base stats.
 ]=]
-ProfileData._baseStats = table.freeze({ ["SPEED"] = 40 } :: { [Stat]: number })
+ProfileData._baseStats = table.freeze({ ["SPEED"] = 16, ["PICKUP_RADIUS"] = 5 } :: { [Stat]: number })
 
 --[=[
 	@prop upgradesList { [Upgrade]: { {stats: { [Stat]: { operation: "ADD" | "MUL", value: number } },cost: { [Currency]: number } } } }
@@ -122,11 +134,12 @@ function ProfileData.new(player: Player, data: Data): ProfileData
 
 	self._player = player
 	self._data = data
+	self.janitor = Janitor.new()
 
-	self.replica = Replica.New({
+	self.replica = self.janitor:Add(Replica.New({
 		Token = Replica.Token("ProfileData"),
 		Data = { data = data, stats = table.clone(ProfileData._baseStats) },
-	})
+	}))
 
 	self = setmetatable(self, ProfileData)
 
@@ -179,6 +192,26 @@ function ProfileData.applyStats(self: ProfileData)
 		if humanoid:IsA("Humanoid") then
 			humanoid.WalkSpeed = stats["SPEED"]
 		end
+
+		self.janitor:Add(
+			RunService.Heartbeat:Connect(function()
+				for _, basePart in
+					workspace:GetPartBoundsInRadius(self._player.Character:GetPivot().Position, stats["PICKUP_RADIUS"])
+				do
+					if basePart.Parent:IsA("Model") then
+						local values = FoodEntity.consume(basePart.Parent)
+
+						if values then
+							for currency, value in values do
+								self:addCurrency(currency, value)
+							end
+						end
+					end
+				end
+			end),
+			nil,
+			"pickup"
+		)
 	end
 end
 
@@ -232,10 +265,7 @@ end
 	@within ProfileData
 ]=]
 function ProfileData.Destroy(self: ProfileData)
-	local janitor = Janitor.new()
-
-	janitor:Add(self.replica)
-	janitor:Destroy()
+	self.janitor:Destroy()
 end
 
 return ProfileData

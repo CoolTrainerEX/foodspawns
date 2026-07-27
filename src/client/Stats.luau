@@ -1,15 +1,18 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local React = require(ReplicatedStorage.Packages.React)
+local PickupRadius = require(ReplicatedStorage.Shared.states.stats.PickupRadius)
 local Speed = require(ReplicatedStorage.Shared.states.stats.Speed)
 
 return function()
 	local speed, setSpeed = React.useState(Speed:getState())
+	local pickupRadius, setPickupRadius = React.useState(PickupRadius:getState())
 
 	React.useEffect(function()
 		local janitor = Janitor.new()
 
 		janitor:Add(Speed:subscribe(setSpeed))
+		janitor:Add(PickupRadius:subscribe(setPickupRadius))
 
 		return function()
 			janitor:Cleanup()
@@ -31,6 +34,12 @@ return function()
 			TextColor3 = Color3.fromHSV(0.1, 1, 0.5),
 			TextSize = 30,
 			Text = `Speed: {speed}`,
+		}),
+		React.createElement("TextLabel", {
+			Font = Enum.Font.Bodoni,
+			TextColor3 = Color3.fromHSV(0.5, 1, 0.5),
+			TextSize = 30,
+			Text = `Pickup Radius: {pickupRadius}`,
 		}),
 	})
 end

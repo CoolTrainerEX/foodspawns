@@ -1,7 +1,5 @@
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Entity = require(script.Parent.Entity)
-local GoodSignal = require(ReplicatedStorage.Packages.GoodSignal)
 local Currencies = require(ReplicatedStorage.Shared.Currencies)
 
 --[=[
@@ -20,41 +18,58 @@ FoodEntity.__index = FoodEntity
 	@private
 	@readonly
 
-	[Currency] value.
+	[Currency] values.
 ]=]
 
---[=[
-	@prop Touched Signal<Player, { [Currency]: number }>
-	@within FoodEntity
-	@external Signal https://github.com/stravant/goodsignal
-	@readonly
-
-	Player touched [Signal].
-]=]
 export type FoodEntity =
 	typeof(setmetatable(
 		{} :: {
 			_values: { [Currencies.Currency]: number },
-			Touched: GoodSignal.Signal<Player, { [Currencies.Currency]: number }>,
 		},
 		FoodEntity
 	))
 	& Entity.Entity
 
 --[=[
+	@prop _registry { [Model]: FoodEntity }
+	@within FoodEntity
+	@private
+
+	Registry of spawned [FoodEntity].
+]=]
+FoodEntity._registry = {} :: { [Model]: FoodEntity }
+
+--[=[
 	Creates a new [FoodEntity].
 
 	@param model Model -- [Model] to clone on spawn
-	@param values { [Currency]: number } -- [Currency] value
+	@param values { [Currency]: number } -- [Currency] values
 	@return FoodEntity -- Instance
 ]=]
 function FoodEntity.new(model: Model, values: { [Currencies.Currency]: number }): FoodEntity
 	local self = Entity.new(model)
 
-	self.Touched = GoodSignal.new()
 	self._values = values
 
 	return setmetatable(self, FoodEntity)
+end
+
+--[=[
+	Consumes the [Model] and returns the [Currency] values.
+
+	@param model Model -- Model to consume
+	@return { [Currency]: number } -- Currency values
+]=]
+function FoodEntity.consume(model: Model): { [Currencies.Currency]: number }?
+	local entity = FoodEntity._registry[model]
+
+	if entity then
+		model:Destroy()
+
+		return entity._values
+	end
+
+	return
 end
 
 --[=[
@@ -67,20 +82,8 @@ end
 ]=]
 function FoodEntity.spawn(self: FoodEntity, targetCFrame: CFrame)
 	local clone = Entity.spawn(self, targetCFrame)
-	local primaryPart = clone.PrimaryPart
-	local debounce = false
 
-	if primaryPart then
-		primaryPart.Touched:Connect(function(otherPart: BasePart)
-			local player = Players:GetPlayerFromCharacter(otherPart.Parent)
-
-			if not debounce and player then
-				debounce = true
-				self.Touched:Fire(player, self._values)
-				clone:Destroy()
-			end
-		end)
-	end
+	FoodEntity._registry[clone] = self
 
 	return clone
 end

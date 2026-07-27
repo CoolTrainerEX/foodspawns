@@ -12,16 +12,6 @@ local EntitySpawner = {}
 EntitySpawner.__index = EntitySpawner
 
 --[=[
-	@prop _janitor Janitor
-	@within EntitySpawner
-	@external Janitor https://howmanysmall.github.io/Janitor/api/Janitor/
-	@private
-	@readonly
-
-	[Janitor] used by the instance.
-]=]
-
---[=[
 	@prop _entities { Entity }
 	@within EntitySpawner
 	@private
@@ -56,13 +46,21 @@ EntitySpawner.__index = EntitySpawner
 
 	Spawn rate (Hz).
 ]=]
+
+--[=[
+	@prop janitor Janitor
+	@within EntitySpawner
+	@readonly
+
+	[Janitor] used by the instance.
+]=]
 export type EntitySpawner = typeof(setmetatable(
 	{} :: {
-		_janitor: Janitor.Janitor,
 		_entities: { Entity.Entity },
 		_size: Vector2,
 		_position: Vector3,
 		_rate: number,
+		janitor: Janitor.Janitor,
 	},
 	EntitySpawner
 ))
@@ -81,11 +79,11 @@ local random = Random.new()
 function EntitySpawner.new(entities: { Entity.Entity }, size: Vector2, position: Vector3, rate: number): EntitySpawner
 	local self = {}
 
-	self._janitor = Janitor.new()
 	self._entities = entities
 	self._size = size
 	self._position = position
 	self._rate = rate
+	self.janitor = Janitor.new()
 
 	return setmetatable(self, EntitySpawner)
 end
@@ -97,7 +95,7 @@ end
 	@within EntitySpawner
 ]=]
 function EntitySpawner.start(self: EntitySpawner)
-	self._janitor:Add(
+	self.janitor:Add(
 		task.spawn(function()
 			while true do
 				local at = Vector3.new(
@@ -106,7 +104,7 @@ function EntitySpawner.start(self: EntitySpawner)
 					random:NextNumber(self._position.Z - self._size.Y / 2, self._position.Z + self._size.Y / 2)
 				)
 
-				self._janitor:Add(
+				self.janitor:Add(
 					self._entities[random:NextInteger(1, #self._entities)]:spawn(
 						CFrame.lookAt(at, at + random:NextUnitVector())
 					)
@@ -127,17 +125,7 @@ end
 	@within EntitySpawner
 ]=]
 function EntitySpawner.pause(self: EntitySpawner)
-	self._janitor:Remove("spawn")
-end
-
---[=[
-	Destroy instance and spawned [Entity].
-
-	@method Destroy
-	@within EntitySpawner
-]=]
-function EntitySpawner.Destroy(self: EntitySpawner)
-	self._janitor:Destroy()
+	self.janitor:Remove("spawn")
 end
 
 return EntitySpawner
