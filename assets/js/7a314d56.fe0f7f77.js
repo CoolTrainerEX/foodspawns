@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[810],{4410:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/CoolTrainerEX/foodspawns/blob/master","baseUrl":"/foodspawns/","classOrder":[],"apiCategories":[]}')}}]);
