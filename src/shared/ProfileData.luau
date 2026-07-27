@@ -3,15 +3,54 @@ local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local Replica = require(ReplicatedStorage.Packages.Replica)
 local Currencies = require(ReplicatedStorage.Shared.Currencies)
 
+--[=[
+	@class ProfileData
+
+	Class storing profile data.
+]=]
 local ProfileData = {}
 
 ProfileData.__index = ProfileData
 
+--[=[
+	@interface Data
+	@within ProfileData
+	@field currencies { [Currency]: number } -- Player currencies
+	@field upgrades { [Upgrade]: number? } -- Player upgrade levels
+	
+	Data stored in profile.
+]=]
 export type Data = {
 	currencies: { [Currencies.Currency]: number },
 	upgrades: { [Upgrade]: number? },
 }
 
+--[=[
+	@prop _player Player
+	@within ProfileData
+	@private
+	@readonly
+
+	Reference to profile [Player].
+]=]
+
+--[=[
+	@prop _data Data
+	@within ProfileData
+	@private
+
+	Reference to profile [Data].
+]=]
+
+--[=[
+	@prop replica Replica
+	@within ProfileData
+	@external Replica https://madstudioroblox.github.io/Replica/
+	@server
+	@readonly
+
+	[Replica] used to sync data to the client.
+]=]
 export type ProfileData = typeof(setmetatable(
 	{} :: {
 		_player: Player,
@@ -21,11 +60,41 @@ export type ProfileData = typeof(setmetatable(
 	ProfileData
 ))
 
+--[=[
+	@type Stat "SPEED"
+	@within ProfileData
+	@private
+
+	Player stat IDs.
+]=]
 type Stat = "SPEED"
+
+--[=[
+	@type Upgrade "BOOSTER"
+	@within ProfileData
+	@private
+
+	Player upgrade IDs.
+]=]
 type Upgrade = "BOOSTER"
 
+--[=[
+	@prop _baseStats { [Stat]: number }
+	@within ProfileData
+	@private
+	@readonly
+
+	Player base stats.
+]=]
 ProfileData._baseStats = table.freeze({ ["SPEED"] = 40 } :: { [Stat]: number })
 
+--[=[
+	@prop upgradesList { [Upgrade]: { {stats: { [Stat]: { operation: "ADD" | "MUL", value: number } },cost: { [Currency]: number } } } }
+	@within ProfileData
+	@readonly
+
+	List of upgrade stats and costs in each level.
+]=]
 ProfileData.upgradesList = table.freeze({
 	["BOOSTER"] = {
 		{ stats = { ["SPEED"] = { operation = "ADD", value = 0.25 } }, cost = { ["MONEY"] = 1 } },
@@ -40,6 +109,14 @@ ProfileData.upgradesList = table.freeze({
 	},
 })
 
+--[=[
+	Creates a new [ProfileData] given the reference to the profile.
+
+	@param player Player -- Reference to profile [Player]
+	@param data Data -- Reference to profile [Data]
+	@return ProfileData -- Instance
+	@server
+]=]
 function ProfileData.new(player: Player, data: Data): ProfileData
 	local self = {}
 
@@ -60,6 +137,12 @@ function ProfileData.new(player: Player, data: Data): ProfileData
 	return self
 end
 
+--[=[
+	Applies stats to the [Player].
+
+	@method applyStats
+	@within ProfileData
+]=]
 function ProfileData.applyStats(self: ProfileData)
 	local stats = table.clone(ProfileData._baseStats)
 	local add = {}
@@ -99,10 +182,26 @@ function ProfileData.applyStats(self: ProfileData)
 	end
 end
 
+--[=[
+	Adds to a player currency.
+
+	@method addCurrency
+	@within ProfileData
+	@param currency Currency -- Currency to add
+	@param value number -- Amount to add
+]=]
 function ProfileData.addCurrency(self: ProfileData, currency: Currencies.Currency, value: number)
 	self.replica:Set({ "data", "currencies", currency }, self._data.currencies[currency] + value)
 	self:applyStats()
 end
+
+--[=[
+	Increment a player upgrade level.
+
+	@method upgrade
+	@within ProfileData
+	@param upgrade Upgrade -- Upgrade to increment
+]=]
 
 function ProfileData.upgrade(self: ProfileData, upgrade: Upgrade)
 	local newValue = (self._data.upgrades[upgrade] or 0) + 1
@@ -126,6 +225,12 @@ function ProfileData.upgrade(self: ProfileData, upgrade: Upgrade)
 	end
 end
 
+--[=[
+	Destroy instance.
+
+	@method Destroy
+	@within ProfileData
+]=]
 function ProfileData.Destroy(self: ProfileData)
 	local janitor = Janitor.new()
 

@@ -2,11 +2,61 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local Entity = require(ReplicatedStorage.Shared.entities.Entity)
 
-local Spawner = {}
+--[=[
+	@class EntitySpawner
 
-Spawner.__index = Spawner
+	Spawns [Entity] on an area.
+]=]
+local EntitySpawner = {}
 
-export type Spawner = typeof(setmetatable(
+EntitySpawner.__index = EntitySpawner
+
+--[=[
+	@prop _janitor Janitor
+	@within EntitySpawner
+	@external Janitor https://howmanysmall.github.io/Janitor/api/Janitor/
+	@private
+	@readonly
+
+	[Janitor] used by the instance.
+]=]
+
+--[=[
+	@prop _entities { Entity }
+	@within EntitySpawner
+	@private
+	@readonly
+
+	List of [Entity] to spawn.
+]=]
+
+--[=[
+	@prop _size Vector2
+	@within EntitySpawner
+	@private
+	@readonly
+
+	Size of the spawner.
+]=]
+
+--[=[
+	@prop _position Vector3
+	@within EntitySpawner
+	@private
+	@readonly
+
+	Position of the spawner.
+]=]
+
+--[=[
+	@prop _rate number
+	@within EntitySpawner
+	@private
+	@readonly
+
+	Spawn rate (Hz).
+]=]
+export type EntitySpawner = typeof(setmetatable(
 	{} :: {
 		_janitor: Janitor.Janitor,
 		_entities: { Entity.Entity },
@@ -14,12 +64,21 @@ export type Spawner = typeof(setmetatable(
 		_position: Vector3,
 		_rate: number,
 	},
-	Spawner
+	EntitySpawner
 ))
 
 local random = Random.new()
 
-function Spawner.new(entities: { Entity.Entity }, size: Vector2, position: Vector3, rate: number): Spawner
+--[=[
+	Creates a new [EntitySpawner].
+
+	@param entities { Entity } -- List of [Entity] to spawn
+	@param size Vector2 -- Size of the spawner
+	@param position Vector3 -- Position of the spawner
+	@param rate number -- Spawn rate (Hz)
+	@return EntitySpawner -- Instance
+]=]
+function EntitySpawner.new(entities: { Entity.Entity }, size: Vector2, position: Vector3, rate: number): EntitySpawner
 	local self = {}
 
 	self._janitor = Janitor.new()
@@ -28,10 +87,16 @@ function Spawner.new(entities: { Entity.Entity }, size: Vector2, position: Vecto
 	self._position = position
 	self._rate = rate
 
-	return setmetatable(self, Spawner)
+	return setmetatable(self, EntitySpawner)
 end
 
-function Spawner.start(self: Spawner)
+--[=[
+	Starts the spawning.
+
+	@method start
+	@within EntitySpawner
+]=]
+function EntitySpawner.start(self: EntitySpawner)
 	self._janitor:Add(
 		task.spawn(function()
 			while true do
@@ -55,12 +120,24 @@ function Spawner.start(self: Spawner)
 	)
 end
 
-function Spawner.pause(self: Spawner)
+--[=[
+	Pauses the spawning.
+
+	@method pause
+	@within EntitySpawner
+]=]
+function EntitySpawner.pause(self: EntitySpawner)
 	self._janitor:Remove("spawn")
 end
 
-function Spawner.Destroy(self: Spawner)
+--[=[
+	Destroy instance and spawned [Entity].
+
+	@method Destroy
+	@within EntitySpawner
+]=]
+function EntitySpawner.Destroy(self: EntitySpawner)
 	self._janitor:Destroy()
 end
 
-return Spawner
+return EntitySpawner
