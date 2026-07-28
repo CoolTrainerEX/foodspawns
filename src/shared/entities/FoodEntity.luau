@@ -55,18 +55,19 @@ function FoodEntity.new(model: Model, values: { [Currencies.Currency]: number })
 end
 
 --[=[
-	Consumes the [Model] and returns the [Currency] values.
+	Checks if the [Model] is in the registry and returns the [Currency] values and consume function.
 
-	@param model Model -- Model to consume
-	@return { [Currency]: number } -- Currency values
+	@param model Model -- Model to check
+	@return { [Currencies.Currency]: number }? -- Currency values
+	@return (() -> ())? -- Consume function
 ]=]
-function FoodEntity.consume(model: Model): { [Currencies.Currency]: number }?
+function FoodEntity.consume(model: Model): ({ [Currencies.Currency]: number }?, (() -> ())?)
 	local entity = FoodEntity._registry[model]
 
 	if entity then
-		model:Destroy()
-
-		return entity._values
+		return entity._values, function()
+			model:Destroy()
+		end
 	end
 
 	return

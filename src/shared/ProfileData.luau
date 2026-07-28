@@ -155,8 +155,9 @@ end
 
 	@method applyStats
 	@within ProfileData
+	@return { [Stat]: number } -- Player stats
 ]=]
-function ProfileData.applyStats(self: ProfileData)
+function ProfileData.applyStats(self: ProfileData): { [Stat]: number }
 	local stats = table.clone(ProfileData._baseStats)
 	local add = {}
 
@@ -199,9 +200,11 @@ function ProfileData.applyStats(self: ProfileData)
 					workspace:GetPartBoundsInRadius(self._player.Character:GetPivot().Position, stats["PICKUP_RADIUS"])
 				do
 					if basePart.Parent:IsA("Model") then
-						local values = FoodEntity.consume(basePart.Parent)
+						local values, consume = FoodEntity.consume(basePart.Parent)
 
-						if values then
+						if values and consume then
+							consume()
+
 							for currency, value in values do
 								self:addCurrency(currency, value)
 							end
@@ -213,6 +216,8 @@ function ProfileData.applyStats(self: ProfileData)
 			"pickup"
 		)
 	end
+
+	return stats
 end
 
 --[=[
