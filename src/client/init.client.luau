@@ -36,7 +36,7 @@ Replica.OnNew("ProfileData", function(replica)
 		Speed:setState(value)
 	end)
 
-	replica:OnSet({ "stats", "PICJUP_RADIUS" }, function(value)
+	replica:OnSet({ "stats", "PICKUP_RADIUS" }, function(value)
 		PickupRadius:setState(value)
 	end)
 end)
