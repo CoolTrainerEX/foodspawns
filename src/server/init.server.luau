@@ -92,17 +92,15 @@ Players.PlayerRemoving:Connect(function(player: Player)
 	end
 end)
 
-local spawner = EntitySpawner.new(
-	{ FoodEntity.new(ServerStorage:WaitForChild("Food"), { ["FOOD"] = 5 }) },
-	Vector2.new(100, 100),
-	Vector3.new(0, 5, 0),
-	1
-)
-
 Upgrade.upgrade.listen(function(data: string, player: Player?)
 	if player then
 		PlayerData[player].data:upgrade(data)
 	end
 end)
 
-spawner:start()
+-- EntitySpawner.new(
+-- 	{ FoodEntity.new(ServerStorage:WaitForChild("Food"), { ["FOOD"] = 5 }) },
+-- 	Vector2.new(100, 100),
+-- 	Vector3.new(0, 5, 0),
+-- 	1
+-- ):start()
