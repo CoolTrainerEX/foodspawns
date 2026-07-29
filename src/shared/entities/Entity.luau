@@ -1,5 +1,3 @@
-local Workspace = game:GetService("Workspace")
-
 --[=[
 	@class Entity
 
@@ -45,7 +43,7 @@ function Entity.spawn(self: Entity, targetCFrame: CFrame)
 	local clone = self._model:Clone()
 
 	clone:PivotTo(targetCFrame)
-	clone.Parent = Workspace
+	clone.Parent = workspace
 
 	return clone
 end
