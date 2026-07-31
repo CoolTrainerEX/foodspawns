@@ -12,7 +12,7 @@ local EntitySpawner = {}
 EntitySpawner.__index = EntitySpawner
 
 --[=[
-	@prop _entities { Entity }
+	@prop _entities { { entity: Entity.Entity, weight: number } }
 	@within EntitySpawner
 	@private
 	@readonly
@@ -56,7 +56,7 @@ EntitySpawner.__index = EntitySpawner
 ]=]
 export type EntitySpawner = typeof(setmetatable(
 	{} :: {
-		_entities: { Entity.Entity },
+		_entities: { { entity: Entity.Entity, weight: number } },
 		_size: Vector2,
 		_position: Vector3,
 		_rate: number,
@@ -70,13 +70,18 @@ local random = Random.new()
 --[=[
 	Creates a new [EntitySpawner].
 
-	@param entities { Entity } -- List of [Entity] to spawn
+	@param entities { { entity: Entity.Entity, weight: number } } -- List of [Entity] to spawn
 	@param size Vector2 -- Size of the spawner
 	@param position Vector3 -- Position of the spawner
 	@param rate number -- Spawn rate (Hz)
 	@return EntitySpawner -- Instance
 ]=]
-function EntitySpawner.new(entities: { Entity.Entity }, size: Vector2, position: Vector3, rate: number): EntitySpawner
+function EntitySpawner.new(
+	entities: { { entity: Entity.Entity, weight: number } },
+	size: Vector2,
+	position: Vector3,
+	rate: number
+): EntitySpawner
 	local self = {}
 
 	self._entities = entities
@@ -104,11 +109,25 @@ function EntitySpawner.start(self: EntitySpawner)
 					random:NextNumber(self._position.Z - self._size.Y / 2, self._position.Z + self._size.Y / 2)
 				)
 
-				self.janitor:Add(
-					self._entities[random:NextInteger(1, #self._entities)]:spawn(
-						CFrame.lookAt(at, at + random:NextUnitVector())
-					)
-				)
+				local totalWeight = 0
+				local currentWeight = 0
+
+				for _, entity in self._entities do
+					totalWeight += entity.weight
+				end
+
+				local roll = random:NextNumber(0, totalWeight)
+
+				for i, entity in self._entities do
+					currentWeight += entity.weight
+
+					if roll <= currentWeight then
+						self.janitor:Add(
+							self._entities[i].entity:spawn(CFrame.lookAt(at, at + random:NextUnitVector()))
+						)
+						break
+					end
+				end
 
 				task.wait(1 / self._rate)
 			end

@@ -1,12 +1,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local Promise = require(ReplicatedStorage.Packages.Promise)
 local Replica = require(ReplicatedStorage.Packages.Replica)
 local ProfileData = require(ReplicatedStorage.Shared.ProfileData)
-local EntitySpawner = require(ReplicatedStorage.Shared.entities.EntitySpawner)
-local FoodEntity = require(ReplicatedStorage.Shared.entities.FoodEntity)
 local Upgrade = require(ReplicatedStorage.Shared.packets.Upgrade)
 local ProfileStore = require(script.Parent.ServerPackages.ProfileStore)
 
@@ -99,7 +96,7 @@ Upgrade.upgrade.listen(function(data: string, player: Player?)
 end)
 
 -- EntitySpawner.new(
--- 	{ FoodEntity.new(ServerStorage:WaitForChild("Food"), { ["FOOD"] = 5 }) },
+-- 	{ { entity = FoodEntity.new(ServerStorage:WaitForChild("Food"), { ["FOOD"] = 5 }), weight = 1 } },
 -- 	Vector2.new(100, 100),
 -- 	Vector3.new(0, 5, 0),
 -- 	1
