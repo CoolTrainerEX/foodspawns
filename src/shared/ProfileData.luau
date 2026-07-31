@@ -98,7 +98,7 @@ type Upgrade = "BOOSTER"
 
 	Player base stats.
 ]=]
-ProfileData._baseStats = table.freeze({ ["SPEED"] = 16, ["PICKUP_RADIUS"] = 5 } :: { [Stat]: number })
+ProfileData._baseStats = table.freeze({ ["SPEED"] = 16, ["PICKUP_RADIUS"] = 3 } :: { [Stat]: number })
 
 --[=[
 	@prop upgradesList { [Upgrade]: { {stats: { [Stat]: { operation: "ADD" | "MUL", value: number } },cost: { [Currency]: number } } } }
