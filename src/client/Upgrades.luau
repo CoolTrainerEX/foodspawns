@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local React = require(ReplicatedStorage.Packages.React)
@@ -23,11 +24,11 @@ return function()
 		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
 	}, {
-		React.createElement("UIGridLayout", {
+		Grid = React.createElement("UIGridLayout", {
 			CellPadding = UDim2.fromOffset(5, 5),
 			CellSize = UDim2.fromOffset(200, 40),
 		}),
-		React.createElement("TextButton", {
+		Booster = React.createElement("TextButton", {
 			Font = Enum.Font.Bodoni,
 			TextColor3 = Color3.fromHSV(0.1, 1, 0.5),
 			TextSize = 30,

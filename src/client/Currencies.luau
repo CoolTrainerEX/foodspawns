@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
 local React = require(ReplicatedStorage.Packages.React)
@@ -22,23 +23,23 @@ return function()
 	return React.createElement("ScreenGui", {
 		ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets,
 	}, {
-		React.createElement("UIPadding", {
+		Padding = React.createElement("UIPadding", {
 			PaddingTop = UDim.new(0, 10),
 			PaddingBottom = UDim.new(0, 10),
 			PaddingLeft = UDim.new(0, 10),
 			PaddingRight = UDim.new(0, 10),
 		}),
-		React.createElement("UIGridLayout", {
+		Grid = React.createElement("UIGridLayout", {
 			CellPadding = UDim2.fromOffset(5, 5),
 			CellSize = UDim2.fromOffset(200, 40),
 		}),
-		React.createElement("TextLabel", {
+		Food = React.createElement("TextLabel", {
 			Font = Enum.Font.Bodoni,
 			TextColor3 = Color3.fromHSV(0, 1, 0.5),
 			TextSize = 30,
 			Text = `Food: {food}`,
 		}),
-		React.createElement("TextLabel", {
+		Money = React.createElement("TextLabel", {
 			Font = Enum.Font.Bodoni,
 			TextColor3 = Color3.fromHSV(0.25, 1, 0.5),
 			TextSize = 30,

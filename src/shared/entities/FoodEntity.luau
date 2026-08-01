@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Entity = require(script.Parent.Entity)
 local Currencies = require(ReplicatedStorage.Shared.Currencies)
@@ -47,7 +48,7 @@ FoodEntity._registry = {} :: { [Model]: FoodEntity }
 	@return FoodEntity -- Instance
 ]=]
 function FoodEntity.new(model: Model, values: { [Currencies.Currency]: number }): FoodEntity
-	local self = Entity.new(model)
+	local self = Entity.new(model) :: any
 
 	self._values = values
 

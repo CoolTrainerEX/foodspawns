@@ -1,3 +1,4 @@
+--!strict
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
@@ -14,7 +15,7 @@ local PlayerStore = ProfileStore.New(
 
 local PlayerData: {
 	[Player]: {
-		profile: typeof(PlayerStore:StartSessionAsync()),
+		profile: ProfileStore.Profile<ProfileData.Data>,
 		data: ProfileData.ProfileData,
 		janitor: typeof(Janitor.new()),
 	},
@@ -23,7 +24,7 @@ local PlayerData: {
 
 local PlayerPromises: { [Player]: typeof(Promise.try()) } = {}
 
-local function PlayerAdded(player)
+local function PlayerAdded(player: Player)
 	PlayerPromises[player] = Promise.try(function()
 		return PlayerStore:StartSessionAsync(`{player.UserId}`, {
 			Cancel = function()
@@ -47,17 +48,14 @@ local function PlayerAdded(player)
 				janitor:Add(data.janitor)
 
 				PlayerData[player] = {
-					profile = janitor:Add(profile, "EndSession"),
+					profile = janitor:Add(profile, "EndSession") :: any,
 					data = data,
 					janitor = janitor,
 				}
 
 				print(`Profile loaded for {player.DisplayName}!`)
-
-				return PlayerData[player]
 			else
 				profile:EndSession()
-				return
 			end
 		end)
 		:catch(function()
@@ -75,8 +73,8 @@ Replica.NewReadyPlayer:Connect(function(player: Player)
 	local playerPromise = PlayerPromises[player]
 
 	if playerPromise then
-		playerPromise:andThen(function(playerData)
-			playerData.data.replica:Subscribe(player)
+		playerPromise:andThen(function()
+			PlayerData[player].data.replica:Subscribe(player)
 		end)
 	end
 end)
@@ -91,7 +89,7 @@ end)
 
 Upgrade.upgrade.listen(function(data: string, player: Player?)
 	if player then
-		PlayerData[player].data:upgrade(data)
+		PlayerData[player].data:upgrade(data :: ProfileData.Upgrade)
 	end
 end)
 

@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Janitor = require(ReplicatedStorage.Packages.Janitor)
@@ -73,22 +74,21 @@ export type ProfileData = typeof(setmetatable(
 ))
 
 --[=[
-	@type Stat "SPEED" | "PICKUP_RADIUS"
+	@type Stat "SPEED" | "REACH"
 	@within ProfileData
 	@private
 
 	Player stat IDs.
 ]=]
-type Stat = "SPEED" | "PICKUP_RADIUS"
+type Stat = "SPEED" | "REACH"
 
 --[=[
 	@type Upgrade "BOOSTER"
 	@within ProfileData
-	@private
 
 	Player upgrade IDs.
 ]=]
-type Upgrade = "BOOSTER"
+export type Upgrade = "BOOSTER"
 
 --[=[
 	@prop _baseStats { [Stat]: number }
@@ -98,7 +98,7 @@ type Upgrade = "BOOSTER"
 
 	Player base stats.
 ]=]
-ProfileData._baseStats = table.freeze({ ["SPEED"] = 16, ["PICKUP_RADIUS"] = 3 } :: { [Stat]: number })
+ProfileData._baseStats = table.freeze({ ["SPEED"] = 16, ["REACH"] = 3 } :: { [Stat]: number })
 
 --[=[
 	@prop upgradesList { [Upgrade]: { {stats: { [Stat]: { operation: "ADD" | "MUL", value: number } },cost: { [Currency]: number } } } }
@@ -163,9 +163,9 @@ function ProfileData.applyStats(self: ProfileData): { [Stat]: number }
 
 	for upgrade, value in self._data.upgrades do
 		if value then
-			for stat, modifier in ProfileData.upgradesList[upgrade][value].stats do
+			for stat, modifier in ProfileData.upgradesList[upgrade :: Upgrade][value].stats do
 				if modifier.operation == "MUL" then
-					stats[stat] *= modifier.value
+					stats[stat :: Stat] *= modifier.value
 				elseif modifier.operation == "ADD" then
 					if add[stat] then
 						add[stat] += modifier.value
@@ -178,7 +178,7 @@ function ProfileData.applyStats(self: ProfileData): { [Stat]: number }
 	end
 
 	for stat, value in add do
-		stats[stat] += value
+		stats[stat :: Stat] += value
 	end
 
 	-- Add any other stat changes here.
@@ -191,13 +191,16 @@ function ProfileData.applyStats(self: ProfileData): { [Stat]: number }
 		local humanoid = self._player.Character:WaitForChild("Humanoid")
 
 		if humanoid:IsA("Humanoid") then
-			humanoid.WalkSpeed = stats["SPEED"]
+			humanoid.WalkSpeed = stats["SPEED" :: Stat]
 		end
 
 		self.janitor:Add(
 			RunService.Heartbeat:Connect(function()
 				for _, basePart in
-					workspace:GetPartBoundsInRadius(self._player.Character:GetPivot().Position, stats["PICKUP_RADIUS"])
+					workspace:GetPartBoundsInRadius(
+						self._player.Character:GetPivot().Position,
+						stats["REACH" :: Stat]
+					)
 				do
 					if basePart.Parent:IsA("Model") then
 						local values, consume = FoodEntity.consume(basePart.Parent)
@@ -206,7 +209,7 @@ function ProfileData.applyStats(self: ProfileData): { [Stat]: number }
 							consume()
 
 							for currency, value in values do
-								self:addCurrency(currency, value)
+								self:addCurrency(currency :: Currencies.Currency, value)
 							end
 						end
 					end
@@ -248,7 +251,7 @@ function ProfileData.upgrade(self: ProfileData, upgrade: Upgrade)
 		local cost = ProfileData.upgradesList[upgrade][newValue].cost
 
 		for currency, value in cost do
-			if self._data.currencies[currency] < value then
+			if self._data.currencies[currency :: Currencies.Currency] < value then
 				return
 			end
 		end
@@ -256,7 +259,10 @@ function ProfileData.upgrade(self: ProfileData, upgrade: Upgrade)
 		self.replica:Set({ "data", "upgrades", upgrade }, newValue)
 
 		for currency, value in cost do
-			self.replica:Set({ "data", "currencies", currency }, self._data.currencies[currency] - value)
+			self.replica:Set(
+				{ "data", "currencies", currency },
+				self._data.currencies[currency :: Currencies.Currency] - value
+			)
 		end
 
 		self:applyStats()

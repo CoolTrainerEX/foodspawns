@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Currencies = require(script.Parent.Currencies)
 local Stats = require(script.Parent.Stats)
