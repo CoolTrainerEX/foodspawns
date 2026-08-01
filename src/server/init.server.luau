@@ -17,7 +17,7 @@ local PlayerData: {
 	[Player]: {
 		profile: ProfileStore.Profile<ProfileData.Data>,
 		data: ProfileData.ProfileData,
-		janitor: typeof(Janitor.new()),
+		janitor: Janitor.Janitor,
 	},
 } =
 	{}
