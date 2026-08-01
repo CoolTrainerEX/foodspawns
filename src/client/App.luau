@@ -7,14 +7,14 @@ local React = require(ReplicatedStorage.Packages.React)
 
 return function()
 	return React.createElement("ScreenGui", { ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets }, {
-		React.createElement("UIPadding", {
+		UIPadding = React.createElement("UIPadding", {
 			PaddingTop = UDim.new(0, 10),
 			PaddingBottom = UDim.new(0, 10),
 			PaddingLeft = UDim.new(0, 10),
 			PaddingRight = UDim.new(0, 10),
 		}),
-		React.createElement(Currencies),
-		React.createElement(Stats),
-		React.createElement(Upgrades),
+		Currencies = React.createElement(Currencies),
+		Stats = React.createElement(Stats),
+		Upgrades = React.createElement(Upgrades),
 	})
 end

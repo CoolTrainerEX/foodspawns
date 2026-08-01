@@ -26,7 +26,7 @@ return function()
 		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
 	}, {
-		Grid = React.createElement("UIGridLayout", {
+		UIGridLayout = React.createElement("UIGridLayout", {
 			CellPadding = UDim2.fromOffset(5, 5),
 			CellSize = UDim2.fromOffset(200, 40),
 		}),

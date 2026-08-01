@@ -23,13 +23,13 @@ return function()
 	return React.createElement("ScreenGui", {
 		ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets,
 	}, {
-		Padding = React.createElement("UIPadding", {
+		UIPadding = React.createElement("UIPadding", {
 			PaddingTop = UDim.new(0, 10),
 			PaddingBottom = UDim.new(0, 10),
 			PaddingLeft = UDim.new(0, 10),
 			PaddingRight = UDim.new(0, 10),
 		}),
-		Grid = React.createElement("UIGridLayout", {
+		UIGridLayout = React.createElement("UIGridLayout", {
 			CellPadding = UDim2.fromOffset(5, 5),
 			CellSize = UDim2.fromOffset(200, 40),
 		}),
